@@ -325,9 +325,10 @@ body::after {
 }
 
 .spa-layout {
-  grid-template-columns: minmax(230px, 280px) minmax(620px, 1fr) minmax(300px, 360px);
+  grid-template-columns: var(--left-sidebar-w, 280px) minmax(620px, 1fr) var(--right-sidebar-w, 360px);
   grid-auto-rows: minmax(0, 1fr);
   align-items: start;
+  transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .layout-col {
@@ -4762,6 +4763,14 @@ body.right-collapsed #rightSidebar {
   margin: 0 !important;
   opacity: 0 !important;
   pointer-events: none !important;
+}
+
+body.left-collapsed {
+  --left-sidebar-w: 0px !important;
+}
+
+body.right-collapsed {
+  --right-sidebar-w: 0px !important;
 }
 
 #rightSidebar > .card[data-control-card].is-visible {
