@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Innova Bot Realtime Control Center — single-page AI operations cockpit with responsive nav, monitoring, and StarMap suite." />
+  <meta name="theme-color" content="#041226" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Innova Bot" />
+  <meta name="application-name" content="Innova Bot" />
+  <meta property="og:title" content="Innova Bot — Realtime Control Center" />
+  <meta property="og:description" content="Responsive single-page AI operations dashboard with Control Hub, StarMap Suite, and live telemetry." />
+  <meta property="og:type" content="website" />
+  <title>Innova Bot GUI</title>
+  <link rel="icon" type="image/svg+xml" href="static/favicon.svg" />
+  <link rel="shortcut icon" href="static/favicon.svg" />
+  <link rel="apple-touch-icon" href="static/favicon.svg" />
+  <link rel="stylesheet" href="static/style.css?v=1.0.5" />
+</head>
+
+<body class="ui-loading">
+  <div id="appSkeleton" class="app-skeleton" aria-hidden="true">
+    <div class="app-skeleton__bar"></div>
+    <div class="app-skeleton__ribbon"></div>
+    <div class="app-skeleton__grid">
+      <div class="app-skeleton__col app-skeleton__col--left">
+        <div class="app-skeleton__card"></div>
+      </div>
+      <div class="app-skeleton__col app-skeleton__col--center">
+        <div class="app-skeleton__card app-skeleton__card--tall"></div>
+      </div>
+      <div class="app-skeleton__col app-skeleton__col--right">
+        <div class="app-skeleton__card"></div>
+        <div class="app-skeleton__card"></div>
+      </div>
+    </div>
+  </div>
+
+  <header class="bar">
+    <div class="bar__title" data-i18n="appTitle" data-testid="app-header">🚀 Innova Bot — Realtime Control Center</div>
+    <div class="avatar-strip" id="avatarStrip" aria-label="Agent avatars" data-testid="avatar-strip">
+      <div class="avatar-pill avatar-pill--active" data-avatar="bigboss" title="BigBoss">BB</div>
+      <div class="avatar-pill" data-avatar="sa" title="System Analyst">SA</div>
+      <div class="avatar-pill" data-avatar="dev" title="Developer">DV</div>
+      <div class="avatar-pill" data-avatar="qe" title="Quality Evaluator">QE</div>
+    </div>
+    <div class="bar__right">
+      <button id="ribbonToggleBtn" class="theme-toggle" title="Toggle compact top ribbon">Compact Ribbon</button>
+      <button id="langToggle" class="theme-toggle" title="Switch language">TH</button>
+      <div class="badge" id="newBadge" title="New events">0 new</div>
+      <button id="themeToggle" class="theme-toggle">Light theme</button>
+      <div class="bar__status" id="status">disconnected</div>
+    </div>
+  </header>
+
+  <div id="reactControlRoot" class="react-control-root"></div>
+
+  <section class="top-merged-panel" id="topMergedPanel" aria-label="Top ribbon navigation panel">
+    <button id="leftSidebarToggle" class="chrome-toggle chrome-toggle--left" title="Toggle navigation sidebar" aria-label="Toggle navigation">
+      <span class="edge-tab__icon">☰</span>
+      <span class="edge-tab__label">MENU</span>
+    </button>
+
+    <div class="workspace-breadcrumb workspace-breadcrumb--top" id="workspaceBreadcrumb" aria-live="polite">
+      <span class="workspace-breadcrumb__label">Navigation</span>
+      <span class="workspace-breadcrumb__path" id="workspaceBreadcrumbPath">General / Live Workspace</span>
+    </div>
+
+    <button id="rightSidebarToggle" class="chrome-toggle chrome-toggle--right" title="Toggle control sidebar" aria-label="Toggle control panel">
+      <span class="edge-tab__icon">⚙</span>
+      <span class="edge-tab__label">PANEL</span>
+    </button>
+  </section>
+
+  <main class="grid spa-layout">
+    <!-- Left Sidebar: Navigation -->
+    <aside class="layout-col layout-col--left" id="leftSidebar">
+      <section class="card card--nav" id="panelNav">
+        <h2>🧭 Navigation</h2>
+        <div class="hint small">คลิกไม่กี่ครั้งเพื่อเข้าถึงหมวดงานหลัก ใช้ได้ทั้งทีม dev/test/design และผู้ใช้ทั่วไป
+        </div>
+        <nav class="nav-menu" aria-label="Center workspace navigation">
+
+          <div class="nav-group nav-group--collapsible" data-nav-group="cockpit">
+            <button class="nav-group__toggle" type="button" data-nav-toggle="cockpit" aria-expanded="true">
+              <span class="nav-group__label">Cockpit & Operations</span>
+              <span class="nav-group__chevron">▾</span>
+            </button>
+            <div class="nav-group__items">
+              <button class="nav-link is-active" data-center-view="live"
+                data-tip="แชตกับ AI และดูสถานะล่าสุดแบบเรียลไทม์">💬 Live Workspace</button>
+              <button class="nav-link" data-center-view="chat"
+                data-tip="โหมดแชตโดยตรงสำหรับสั่งงาน AI และดู timeline การคุย">🗨️ Chat Interface</button>
+              <button class="nav-link" data-center-view="devide"
+                data-tip="Split-pane IDE: file explorer + live code view + action terminal">💻 Dev IDE</button>
+            </div>
+          </div>
+
+          <div class="nav-group nav-group--collapsible" data-nav-group="vitals">
+            <button class="nav-group__toggle" type="button" data-nav-toggle="vitals" aria-expanded="true">
+              <span class="nav-group__label">System Vitals</span>
+              <span class="nav-group__chevron">▾</span>
+            </button>
+            <div class="nav-group__items">
+              <button class="nav-link" data-center-view="monitoring"
+                data-tip="Beszel-style dashboard: system vitals, agent state, cognitive stream">📊 Dashboard</button>
+              <button class="nav-link" data-center-view="stream"
+                data-tip="ตรวจ raw event/JSON stream และ diagnostics แบบละเอียด">🧾 Raw Event Stream</button>
+              <button class="nav-link" data-center-view="telemetry"
+                data-tip="Live CPU/Memory และ AI Mind State ของเซิร์ฟเวอร์แบบเรียลไทม์">📈 Telemetry</button>
+            </div>
+          </div>
+
+          <div class="nav-group nav-group--collapsible" data-nav-group="swarm">
+            <button class="nav-group__toggle" type="button" data-nav-toggle="swarm" aria-expanded="true">
+              <span class="nav-group__label">AI Swarm Control</span>
+              <span class="nav-group__chevron">▾</span>
+            </button>
+            <div class="nav-group__items">
+              <button class="nav-link" data-center-view="agents"
+                data-tip="ดูรายชื่อ agents, ทักษะ/งานที่ทำล่าสุด, กราฟ และ token ที่ใช้ไป">🤖 AI Swarm & Tokens</button>
+              <button class="nav-link" data-center-view="activity"
+                data-tip="ดูเหตุการณ์ทั้งหมดจาก MCP, Copilot และโปรเจกต์อื่น">📡 Activity Console</button>
+              <button class="nav-link" data-center-view="network"
+                data-tip="ดูการสื่อสารระหว่าง agents และ workflow topology">🌐 Agent Network</button>
+              <button class="nav-link" data-center-view="project-progress"
+                data-tip="ติดตามความคืบหน้าแยกตาม project และงานที่กำลังรัน">🎯 Project Progress</button>
+            </div>
+          </div>
+
+          <div class="nav-group nav-group--collapsible" data-nav-group="starmap-suite">
+            <button class="nav-group__toggle" type="button" data-nav-toggle="starmap-suite" aria-expanded="true">
+              <span class="nav-group__label">StarMap & Knowledge</span>
+              <span class="nav-group__chevron">▾</span>
+            </button>
+            <div class="nav-group__items nav-group__items--compact">
+              <button class="nav-link nav-link--sub" data-center-view="starmap" data-starmap-view="starmap"
+                data-tip="3D Star Map — visualize agent orbits, Ralph Loop beams, and Citta state in real-time">🌌 Agent Map</button>
+              <button class="nav-link nav-link--sub" data-center-view="starmap" data-starmap-view="knowledge"
+                data-tip="เปิด Knowledge Universe ใน StarMap shell เดียวกัน">🧠 Knowledge Universe</button>
+              <button class="nav-link nav-link--sub" data-center-view="starmap" data-starmap-view="mcp"
+                data-tip="เปิด MCP Manager ภายใน StarMap shell">🛠 MCP Manager</button>
+              <button class="nav-link nav-link--sub" data-center-view="starmap" data-starmap-view="references"
+                data-tip="เปิด Reference Repos ภายใน StarMap shell">📚 Reference Repos</button>
+              <button class="nav-link nav-link--sub" data-center-view="knowledge"
+                data-tip="ศูนย์รวม MCP Knowledge, Solution Memory และ Security Audit">🧠 MCP Knowledge</button>
+              <button class="nav-link nav-link--sub" data-center-view="insights"
+                data-tip="ภาพรวมโปรเจกต์ ทีม และสุขภาพการทำงาน">📊 Insights</button>
+            </div>
+          </div>
+
+        </nav>
+      </section>
+    </aside>
+
+    <!-- Center Column: Primary Workspaces -->
+    <section class="layout-col layout-col--center">
+      <!-- Live: Command Deck + Chat -->
+      <section class="card card--command" id="panelCommandDeck" data-center-card="live">
+        <h2>🧠 Command Deck</h2>
+        <div class="hint small">ลากวางบล็อกงาน (drag & drop) เพื่อจัดลำดับ flow การใช้งานที่ถนัดของคุณ</div>
+        <div class="drag-board" id="dragBoard" aria-label="Draggable quick workflows">
+          <div class="drag-lane" data-lane="todo">
+            <div class="drag-lane__title">Quick Steps</div>
+            <button class="drag-item" draggable="true">Connect</button>
+            <button class="drag-item" draggable="true">Sync Tools</button>
+            <button class="drag-item" draggable="true">Ask AI</button>
+          </div>
+          <div class="drag-lane" data-lane="doing">
+            <div class="drag-lane__title">In Focus</div>
+          </div>
+          <div class="drag-lane" data-lane="done">
+            <div class="drag-lane__title">Ready</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card card--chat" id="panelChat" data-center-card="chat">
+        <div class="chat-header-tabs" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+          <h2 style="margin: 0; font-size: 13px;">💬 Chat Interface</h2>
+          <div class="chat-view-modes" style="display: flex; gap: 6px;">
+            <button id="toggleDirectChatBtn" class="primary" style="font-size: 11px; padding: 4px 8px;" onclick="document.getElementById('directChatContainer').style.display='flex'; document.getElementById('panelLineChat').style.display='none'; this.classList.remove('secondary'); this.classList.add('primary'); document.getElementById('toggleTeamChatBtn').classList.remove('primary'); document.getElementById('toggleTeamChatBtn').classList.add('secondary');">Direct AI Chat</button>
+            <button id="toggleTeamChatBtn" class="secondary" style="font-size: 11px; padding: 4px 8px;" onclick="document.getElementById('directChatContainer').style.display='none'; document.getElementById('panelLineChat').style.display='flex'; this.classList.remove('secondary'); this.classList.add('primary'); document.getElementById('toggleDirectChatBtn').classList.remove('primary'); document.getElementById('toggleDirectChatBtn').classList.add('secondary');">AI Swarm Timeline</button>
+          </div>
+        </div>
+
+        <!-- Tab 1: Direct AI Chat -->
+        <div id="directChatContainer" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+          <div class="hint small">พิมพ์คำสั่งภาษาคนธรรมดาได้เลย ระบบจะช่วยสรุปและแนะนำขั้นตอนถัดไป</div>
+          <div class="chat-toolbar" id="chatToolbar">
+            <button class="secondary chat-template" data-chat-template="สรุปสถานะระบบวันนี้แบบสั้น 5 บรรทัด">Daily Brief</button>
+            <button class="secondary chat-template" data-chat-template="วิเคราะห์ความเสี่ยงล่าสุดและบอก next action ที่ทำได้ทันที">Risk Check</button>
+            <button class="secondary chat-template" data-chat-template="ช่วยแตกงานเป็น checklist ที่รันได้จริงพร้อมคำสั่ง">Action Plan</button>
+            <span class="chat-status" id="chatStatus">Ready</span>
+          </div>
+          <div class="chat" id="chat" data-testid="chat-log" style="flex: 1; overflow-y: auto;"></div>
+          <div class="typing-indicator" id="typingIndicator" hidden>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+          <div class="chat-input-panel" id="chatInputPanel">
+            <div class="chat-input-panel__head">
+              <span class="chat-input-panel__title">Input Control Panel</span>
+              <span class="chat-input-panel__mode">mode: realtime command</span>
+            </div>
+            <label class="field">
+              <span data-i18n="chatMessage">Message</span>
+              <textarea id="chatInput" rows="3" placeholder="Type a prompt…"></textarea>
+            </label>
+            <div class="row chat-input-panel__actions">
+              <button id="sendBtn" disabled data-i18n="sendBtn">Send</button>
+              <button id="clearChatBtn" class="secondary" data-i18n="clearBtn">Clear</button>
+              <button class="secondary" type="button">Attach Context</button>
+              <button class="secondary" type="button">Simulate Command</button>
+            </div>
+          </div>
+          <div class="hint" data-i18n="chatHint">If ask_local_ai isn’t configured, you’ll see an error response.</div>
+        </div>
+
+        <!-- Tab 2: AI Swarm Timeline (LineChat) -->
+        <div id="panelLineChat" style="display: none; flex-direction: column; flex: 1; min-height: 0;">
+          <div class="hint small">มุมมองบทสนทนา AI แบบ LINE-like ช่วยตามทันการคุย BigBoss → SA/Dev/QE และดูว่าโปรเจกต์เดินถูกทิศ</div>
+          <div class="activity__controls" style="margin-top: 4px; flex-wrap: wrap;">
+            <label class="activity__filter">
+              <span class="small">Project</span>
+              <select id="lineProjectFilter">
+                <option value="all" selected>All Projects</option>
+              </select>
+            </label>
+            <button id="lineJumpActivityBtn" class="secondary">Open Activity Console</button>
+            <button id="lineOpenGuiBtn" class="secondary">Open /gui</button>
+            <button id="lineCopyTuiBtn" class="secondary">Copy Terminal Shortcut</button>
+            <button id="lineClearBtn" class="secondary">Clear Timeline</button>
+          </div>
+          <div class="line-command" style="margin-top: 6px; border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: rgba(0,0,0,0.15);">
+            <label class="field field--inline">
+              <span>Target Role</span>
+              <select id="lineRoleSelect">
+                <option value="ALL" selected>ALL</option>
+                <option value="SA">SA</option>
+                <option value="Dev">Dev</option>
+                <option value="QE">QE</option>
+              </select>
+            </label>
+            <label class="field line-command__input">
+              <span>Team Command</span>
+              <textarea id="lineCommandInput" rows="2" placeholder="สั่งงานทีม AI แบบ realtime เช่น 'สรุป blocker และลงมือแก้ทันที'"></textarea>
+            </label>
+            <div class="row line-command__actions" style="margin-top: 4px;">
+              <button id="lineSendBtn">Send Team Command</button>
+              <button id="lineCommandClearBtn" class="secondary">Clear</button>
+            </div>
+          </div>
+          <div class="line-thread" id="lineThread" style="flex: 1; overflow-y: auto; margin-top: 8px;"></div>
+        </div>
+      </section>
+
+      <!-- Activity Console -->
+      <section class="card card--activity" id="panelActivity" data-center-card="activity">
+        <h2 data-i18n="activityTitle">📡 Activity & Tool Calls</h2>
+        <div class="hint small" data-i18n="activityHint">รวม activity จากทุก client ที่เรียก MCP innova-bot (เช่น GUI
+          นี้, VS Code Copilot, โปรเจคอื่น)</div>
+        <div class="activity__controls">
+          <div class="activity__filter">
+            <span class="small">Filter</span>
+            <select id="activityFilter">
+              <option value="all" selected>All</option>
+              <option value="tool_call">Tool Calls</option>
+              <option value="tool_result">Tool Results</option>
+              <option value="server">Server Logs</option>
+              <option value="error">Errors</option>
+            </select>
+          </div>
+          <div class="activity__filter">
+            <span class="small">Project</span>
+            <select id="projectFilter">
+              <option value="all" selected>All Projects</option>
+            </select>
+          </div>
+          <div class="activity__filter">
+            <span class="small">Limit</span>
+            <input id="activityLimit" type="number" value="100" min="10" max="1000" />
+          </div>
+          <input id="activitySearch" class="activity__search" placeholder="Search logs…" />
+          <select id="activitySort">
+            <option value="latest" selected>Latest</option>
+            <option value="oldest">Oldest</option>
+          </select>
+          <button id="activityRefreshBtn">Refresh</button>
+          <button id="clearActivityBtn" class="secondary">Clear</button>
+        </div>
+        <div class="summary-box small" id="activitySummary">Loading activity…</div>
+        <div class="activity" id="activity" data-testid="activity-log"></div>
+      </section>
+
+      <!-- Raw Stream Debug -->
+      <section class="card card--raw" id="panelRaw" data-center-card="stream">
+        <h2 data-i18n="rawTitle">🧾 Server Stream (raw JSON)</h2>
+        <div class="activity__controls raw-controls">
+          <label class="activity__filter">
+            <span class="small">Mode</span>
+            <select id="rawModeSelect">
+              <option value="raw" selected>Raw</option>
+              <option value="pretty">Pretty JSON</option>
+              <option value="compact">Compact</option>
+              <option value="chat">Chat Only</option>
+            </select>
+          </label>
+          <label class="activity__filter">
+            <span class="small">Source</span>
+            <select id="rawSourceFilter">
+              <option value="all" selected>All</option>
+              <option value="sse">SSE</option>
+              <option value="rpc-out">RPC Out</option>
+              <option value="rpc-in">RPC In</option>
+              <option value="error">Errors</option>
+            </select>
+          </label>
+          <label class="activity__filter">
+            <span class="small">Filter</span>
+            <input id="rawFilterInput" placeholder="json key, method, error" />
+          </label>
+          <button id="rawPauseBtn" class="secondary">Pause</button>
+        </div>
+        <div class="row">
+          <button id="clearRawBtn" class="secondary">Clear Raw Stream</button>
+        </div>
+        <pre class="log" id="raw" data-testid="raw-log"></pre>
+      </section>
+
+      <!-- MCP Knowledge & Security Center -->
+      <section class="card card--knowledge" id="panelKnowledge" data-center-card="knowledge"
+        style="padding: 0; overflow: hidden; position: relative; height: 100%;">
+        <div class="knowledge-header-tabs" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding: 8px 12px; background: rgba(0,0,0,0.15); flex-wrap: wrap; gap: 8px;">
+          <h2 style="margin: 0; font-size: 13px;">🧠 MCP Knowledge & Security Matrix</h2>
+          <div class="knowledge-view-modes" style="display: flex; gap: 6px;">
+            <button id="knowledgeOpenOpsBtn" class="secondary" style="font-size: 11px; padding: 4px 8px;">Open Ops Hub</button>
+            <button id="knowledgeOpenMemoryBtn" class="secondary" style="font-size: 11px; padding: 4px 8px;">Open Memory</button>
+            <button id="knowledgeRunSearchBtn" class="secondary" style="font-size: 11px; padding: 4px 8px;">Search Progress</button>
+            <button id="toggleMcpManagerBtn" class="primary" style="font-size: 11px; padding: 4px 8px;" onclick="document.getElementById('mcpManagerContainer').style.display='block'; const secPanel = document.getElementById('panelSecurityCenter'); secPanel.style.display='none'; secPanel.classList.remove('is-visible'); this.classList.remove('secondary'); this.classList.add('primary'); document.getElementById('toggleSecurityCenterBtn').classList.remove('primary'); document.getElementById('toggleSecurityCenterBtn').classList.add('secondary');">MCP Server Manager</button>
+            <button id="toggleSecurityCenterBtn" class="secondary" style="font-size: 11px; padding: 4px 8px;" onclick="document.getElementById('mcpManagerContainer').style.display='none'; const secPanel = document.getElementById('panelSecurityCenter'); secPanel.style.display='flex'; secPanel.classList.add('is-visible'); this.classList.remove('secondary'); this.classList.add('primary'); document.getElementById('toggleMcpManagerBtn').classList.remove('primary'); document.getElementById('toggleMcpManagerBtn').classList.add('secondary');">Zero-Trust Security</button>
+          </div>
+        </div>
+
+        <!-- Tab 1: MCP Server Manager Frame -->
+        <div id="mcpManagerContainer" style="flex: 1; min-height: 0; position: relative;">
+          <div class="iframe-loading" id="knowledgeFrameLoading">Loading MCP Knowledge…</div>
+          <iframe
+            id="mcpManagerFrame"
+            src="static/starmap/index.html?view=mcp"
+            style="width: 100%; height: 100%; border: none; display: block;"
+            title="MCP Server Manager"
+            allow="clipboard-write"
+          ></iframe>
+        </div>
+
+        <!-- Tab 2: Zero-Trust Security Center -->
+        <div id="panelSecurityCenter" style="display: none; flex-direction: column; flex: 1; min-height: 0; padding: 12px; overflow-y: auto;">
+          <h2>🛡️ Zero-Trust Security Center</h2>
+          <div class="hint small">Policy Engine constraints and Live Audit Log Stream.</div>
+
+          <div class="tab-row" style="margin-top: 10px;">
+            <button id="viewAuditBtn" class="primary">Audit Stream</button>
+            <button id="viewPoliciesBtn" class="secondary">Tool Matrix</button>
+          </div>
+
+          <div id="auditPanel" class="panel-view" style="margin-top: 8px;">
+            <div class="row">
+              <button id="clearAuditBtn" class="secondary">Clear Log</button>
+              <span id="auditConnStatus" class="small" style="color:var(--text-sec);">Audit stream — ready</span>
+            </div>
+            <pre class="log" id="auditOut" style="height:220px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 6px; padding: 8px; font-family: monospace; font-size: 11px;"></pre>
+          </div>
+
+          <div id="policiesPanel" class="panel-view hidden" style="margin-top: 8px; display: none;">
+            <div class="row">
+              <button id="fetchPoliciesBtn" class="secondary">Refetch Matrix</button>
+            </div>
+            <pre class="log" id="policiesOut" style="height:220px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 6px; padding: 8px; font-family: monospace; font-size: 11px;"></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="card card--project-progress" id="panelProjectProgress" data-center-card="project-progress">
+        <h2>🎯 Project Progress Board</h2>
+        <div class="hint small">ติดตาม progress ล่าสุดจาก event stream แยกตาม project เพื่อช่วยตัดสินใจว่าโฟกัสงานไหนก่อน</div>
+        <div class="row">
+          <button id="projectProgressClearBtn" class="secondary">Clear Progress</button>
+        </div>
+        <div id="projectProgressSummary" class="summary-box small">waiting for progress events...</div>
+        <div id="projectProgressList" class="progress-list"></div>
+      </section>
+
+      <!-- Insight Dashboard -->
+      <section class="card card--insights" id="panelInsights" data-center-card="insights">
+        <h2 data-i18n="insightsTitle">📊 Dashboard Insights</h2>
+        <div class="kpi-grid" id="kpiGrid">
+          <div class="kpi-card">
+            <div class="kpi-label" data-i18n="kpiProjects">Projects</div>
+            <div class="kpi-value" id="kpiProjects">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label" data-i18n="kpiTeams">Teams</div>
+            <div class="kpi-value" id="kpiTeams">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label" data-i18n="kpiAgents">AI Agents</div>
+            <div class="kpi-value" id="kpiAgents">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label" data-i18n="kpiAlerts">Alerts</div>
+            <div class="kpi-value" id="kpiAlerts">0</div>
+          </div>
+        </div>
+
+        <div class="tab-row">
+          <button id="viewOverviewBtn" data-i18n="overviewBtn">Overview</button>
+          <button id="viewProjectBtn" class="secondary" data-i18n="projectDetailBtn">Project Detail</button>
+          <label class="field field--inline">
+            <span>Project</span>
+            <select id="projectSelect">
+              <option value="">Select project</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="overviewPanel" class="panel-view">
+          <div class="panel-grid-3">
+            <div class="mini-panel">
+              <div class="mini-title">Project Score</div>
+              <div id="projectScoreList" class="score-list"></div>
+            </div>
+            <div class="mini-panel">
+              <div class="mini-title">AI Teams</div>
+              <div id="teamScoreList" class="score-list"></div>
+            </div>
+            <div class="mini-panel">
+              <div class="mini-title">AI Individuals</div>
+              <div id="agentScoreList" class="score-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="projectPanel" class="panel-view hidden">
+          <div id="projectSummary" class="summary-box"></div>
+          <div class="panel-grid-2">
+            <div class="mini-panel">
+              <div class="mini-title">AI Team In Project</div>
+              <div id="projectTeamList" class="score-list"></div>
+            </div>
+            <div class="mini-panel">
+              <div class="mini-title">AI Detail In Project</div>
+              <div id="projectAgentList" class="score-list"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI Swarm & Tokens Dashboard -->
+      <section class="card card--agents-monitor-panel" id="panelAgents" data-center-card="agents">
+        <h2>🤖 AI Swarm & Token Monitor</h2>
+        <div class="hint small">ตรวจสอบสถานะการทำงานของแต่ละ AI Agent, ทักษะที่ใช้, ประวัติการรัน และปริมาณ Token สะสม</div>
+        
+        <div class="agents-dashboard-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+          <!-- Card 1: Active Swarm Roster -->
+          <div class="mini-panel" style="background: rgba(255,255,255,0.02); border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; min-height: 0;">
+            <div class="mini-title" style="font-weight: bold; color: var(--accent); margin-bottom: 8px;">Swarm Roster (ทีม Agent ทั้งหมด)</div>
+            <div class="table-container" style="flex: 1; overflow-y: auto; max-height: 380px;">
+              <table id="agentsRosterTable">
+                <thead>
+                  <tr>
+                    <th style="font-size: 11px; padding: 6px; text-align: left;">Agent Name</th>
+                    <th style="font-size: 11px; padding: 6px; text-align: left;">Role</th>
+                    <th style="font-size: 11px; padding: 6px; text-align: left;">Model</th>
+                    <th style="font-size: 11px; padding: 6px; text-align: left;">Status</th>
+                    <th style="font-size: 11px; padding: 6px; text-align: right;">Token Usage</th>
+                  </tr>
+                </thead>
+                <tbody id="agentsRosterBody">
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Card 2: Skill History & Task Stats Graph/Chart -->
+          <div class="mini-panel" style="background: rgba(255,255,255,0.02); border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: flex; flex-direction: column;">
+            <div class="mini-title" style="font-weight: bold; color: var(--accent); margin-bottom: 8px;">Skill Execution History & Tokens (กราฟสะสมพลังสมอง)</div>
+            <div class="sparkline-trend-container" style="display: flex; flex-direction: column; gap: 14px; padding: 8px 0;">
+              <div class="trend-item" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 6px;">
+                <span class="trend-label" style="font-size: 11px; font-weight: 500;">Wit (SA) Skill Flow:</span>
+                <span class="trend-spark" id="witSkillSpark" style="font-family: monospace; color: #d946ef; font-size: 14px; letter-spacing: 2px;">▅▆▇█▇▆▅▃ </span>
+              </div>
+              <div class="trend-item" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 6px;">
+                <span class="trend-label" style="font-size: 11px; font-weight: 500;">Cross (Dev) Code:</span>
+                <span class="trend-spark" id="crossSkillSpark" style="font-family: monospace; color: #16a34a; font-size: 14px; letter-spacing: 2px;">▃▄▅▇███▆▄</span>
+              </div>
+              <div class="trend-item" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 6px;">
+                <span class="trend-label" style="font-size: 11px; font-weight: 500;">Gravy (QE) Review:</span>
+                <span class="trend-spark" id="gravySkillSpark" style="font-family: monospace; color: #2563eb; font-size: 14px; letter-spacing: 2px;"> ▂▃▅▆▇▇▅▃</span>
+              </div>
+              <div class="trend-item" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 6px;">
+                <span class="trend-label" style="font-size: 11px; font-weight: 500;">Jit System Pulse:</span>
+                <span class="trend-spark" id="jitSystemSpark" style="font-family: monospace; color: var(--accent); font-size: 14px; letter-spacing: 2px;"> ▂▃▅███▇▆▄▃▂ </span>
+              </div>
+            </div>
+            <div class="mini-title" style="font-weight: bold; color: var(--accent); margin-top: 16px; margin-bottom: 8px;">Active Task Matrix</div>
+            <div style="flex: 1; font-size: 11px; background: rgba(0,0,0,0.2); border-radius: 6px; padding: 8px; overflow-y: auto; max-height: 120px;" id="agentsTaskMatrix">
+              <!-- Dynamic running tasks -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Section for projects under DEV/* -->
+        <div class="mini-panel" style="margin-top: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); border-radius: 8px; padding: 12px;">
+          <div class="mini-title" style="font-weight: bold; color: var(--accent); margin-bottom: 8px;">Local Dev Environment (DEV/* Projects)</div>
+          <div class="projects-dev-grid" id="projectsDevGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; max-height: 180px; overflow-y: auto;">
+            <!-- Project Cards dynamically loaded -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Agent Network -->
+      <section class="card card--network" id="panelNetwork" data-center-card="network">
+        <h2>🌐 AI Network Visualization</h2>
+        <div class="hint small">เครือข่ายจำลองการรับส่ง Event ระหว่าง Agents (SA, Dev, QE) แบบ Real-time</div>
+        <div class="row">
+          <button id="networkFitBtn" class="secondary">Fit Graph</button>
+          <button id="networkPauseBtn" class="secondary">Pause</button>
+          <button id="networkClearBtn" class="secondary">Clear</button>
+        </div>
+        <div id="networkGraph" class="network-graph-container"
+          style="width: 100%; height: 300px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-top: 10px; overflow: hidden; position: relative;">
+        </div>
+        <div class="small hint" id="networkHint">Network status: waiting for events…</div>
+        <div id="networkFeed" class="network-feed"></div>
+      </section>
+
+      <!-- Star Map: 3D Agent Network Visualizer (react-force-graph-3d) -->
+      <section class="card card--starmap" id="panelStarMap" data-center-card="starmap"
+        style="padding: 0; overflow: hidden; position: relative; height: calc(100vh - var(--chrome-h));">
+        <div class="iframe-loading" id="starMapFrameLoading">Loading StarMap Suite…</div>
+        <iframe
+          id="starMapFrame"
+          src="static/starmap/index.html"
+          style="width: 100%; height: 100%; border: none; display: block;"
+          title="Star Map — 3D Agent Network"
+          allow="accelerometer; clipboard-write"
+        ></iframe>
+      </section>
+
+      <!-- Beszel-style Monitoring Dashboard -->
+      <section class="card card--monitoring" id="panelDashboard" data-center-card="monitoring">
+        <h2>📊 Monitoring Dashboard</h2>
+        <div class="hint small">Live system vitals · agent state · cognitive stream — Beszel-style bento grid</div>
+        <div id="dashboardReactRoot"></div>
+      </section>
+
+      <!-- Bolt.new-style Dev IDE -->
+      <section class="card card--devide" id="panelDevIde" data-center-card="devide">
+        <h2>💻 Dev IDE</h2>
+        <div class="hint small">File explorer · live code view · action terminal — split-pane cockpit</div>
+        <div id="devIdeReactRoot"></div>
+      </section>
+
+      <!-- Telemetry Dashboard -->
+      <section class="card card--telemetry" id="panelTelemetry" data-center-card="telemetry">
+        <h2>📈 Live Telemetry</h2>
+        <div class="hint small">สถานะเซิร์ฟเวอร์และ AI Mind State แบบเรียลไทม์ อัปเดตทุก 3 วินาที</div>
+        <div id="telemetryReactRoot"></div>
+      </section>
+
+      <!-- Security Center has been consolidated inside the MCP Knowledge panel above -->
+
+    </section>
+
+    <!-- Right Sidebar: Control Hub -->
+    <aside class="layout-col layout-col--right" id="rightSidebar">
+      <section class="card card--control-hub" id="panelControlHub">
+        <h2>🎛️ Control Hub</h2>
+        <div class="hint small">รวม control/options/settings สำหรับผู้ใช้ทุกระดับ พร้อมคำแนะนำแบบอ่านง่าย</div>
+        <div class="control-tabs" role="tablist" aria-label="Control categories">
+          <button class="control-tab is-active" data-control-view="connection"
+            data-tip="จัดการการเชื่อมต่อและสถานะระบบ">Connection</button>
+          <button class="control-tab" data-control-view="tools"
+            data-tip="เรียกใช้เครื่องมือ MCP และตั้งค่า arguments">Tools</button>
+          <button class="control-tab" data-control-view="ops"
+            data-tip="หน่วยความจำ, workflow และ approval queue">Ops</button>
+        </div>
+
+        <div class="control-group" id="controlCategoryGroup">
+          <div class="control-group__title">Quick Categories</div>
+          <div class="control-actions control-actions--categories">
+            <button class="control-jump" data-control-view="connection">Connection</button>
+            <button class="control-jump" data-control-view="tools">Tool Runner</button>
+            <button class="control-jump" data-control-view="ops">Memory / Workflow / HITL</button>
+          </div>
+        </div>
+
+        <div class="control-group" id="controlActionGroup">
+          <div class="control-group__title">Primary Actions</div>
+          <div class="control-actions">
+            <button id="controlSubmitBtn">Run Main Action</button>
+            <button id="controlCancelBtn" class="secondary">Clear Draft</button>
+            <button id="controlLogBtn" class="secondary">Open Stream</button>
+          </div>
+        </div>
+
+        <div class="control-group" id="opsSectionGroup">
+          <div class="control-group__title">Ops Sections</div>
+          <div class="control-actions control-actions--ops">
+            <button class="ops-jump" data-ops-target="panelMemory">Memory</button>
+            <button class="ops-jump" data-ops-target="panelWorkflow">Workflow</button>
+            <button class="ops-jump" data-ops-target="panelHitl">Approvals</button>
+          </div>
+        </div>
+        <div class="summary-box small" id="controlHintBox">พร้อมใช้งาน: เลือกหมวดที่ต้องการจากแท็บด้านบน</div>
+      </section>
+
+      <!-- Nested Cards in Right Sidebar (Visible/Hidden based on Control Hub state) -->
+
+      <section class="card card--connection" id="panelConnection" data-control-card="connection">
+        <h2 data-i18n="connectionTitle">🔌 Connection</h2>
+        <label class="field">
+          <span data-i18n="sseUrl">SSE URL</span>
+          <input id="sseUrl" value="/sse" />
+        </label>
+        <div class="row">
+          <button id="connectBtn" data-i18n="connectBtn">Connect</button>
+          <button id="disconnectBtn" class="secondary" disabled data-i18n="disconnectBtn">Disconnect</button>
+        </div>
+        <div class="row">
+          <button id="notifyBtn" class="secondary" data-i18n="alertsBtn">Enable Alerts</button>
+          <button id="muteBtn" class="secondary" data-i18n="muteBtn">Mute Sound</button>
+        </div>
+        <div class="mono small" id="endpoint"></div>
+        <div class="row">
+          <button id="refreshToolsBtn" class="secondary" disabled data-i18n="refreshToolsBtn">Refresh Tools</button>
+          <button id="clearConnBtn" class="secondary" data-i18n="clearConnBtn">Clear Connection Log</button>
+        </div>
+        <div class="row">
+          <button id="refreshRuntimeBtn" class="secondary" disabled data-i18n="runtimeBtn">Runtime Details</button>
+          <button id="runMaintenanceBtn" class="secondary" disabled data-i18n="cleanupBtn">Run Cleanup</button>
+        </div>
+        <div class="summary-box small" id="runtimeDiag">runtime diagnostics: -</div>
+        <div class="summary-box small ai-diag" id="aiDiag">AI route: checking…</div>
+        <pre class="log" id="connLog"></pre>
+      </section>
+
+      <section class="card card--tools" id="panelTools" data-control-card="tools">
+        <h2 data-i18n="toolRunnerTitle">🛠️ Tool Runner</h2>
+        <label class="field">
+          <span data-i18n="toolLabel">Tool</span>
+          <select id="toolSelect" disabled></select>
+        </label>
+        <label class="field">
+          <span data-i18n="toolArgs">Arguments (JSON)</span>
+          <div id="monacoToolArgs"></div>
+          <textarea id="toolArgs" rows="6"
+            placeholder='{ "path": "devtools/innova-bot/innova_bot/server.py" }'></textarea>
+        </label>
+        <div class="row">
+          <button id="callToolBtn" disabled data-i18n="callToolBtn">Call Tool</button>
+          <button id="prettyBtn" class="secondary" data-i18n="prettyJsonBtn">Pretty JSON</button>
+        </div>
+        <pre class="log" id="toolOut"></pre>
+      </section>
+
+      <section class="card card--memory" id="panelMemory" data-control-card="ops">
+        <h2>🧠 Solution Memory</h2>
+        <div class="hint small">ค้นหาวิธีแก้บั๊กและการตัดสินใจทางสถาปัตยกรรมที่เคยบันทึกไว้</div>
+        <label class="field">
+          <span>Search query</span>
+          <input id="memoryQuery" placeholder='e.g. "ImportError", "resolve_path"' />
+        </label>
+        <div class="row">
+          <button id="memorySearchBtn" class="secondary">Search Memory</button>
+          <select id="memoryProject">
+            <option value="">All projects</option>
+          </select>
+        </div>
+        <div id="memoryResults" class="memory-results"></div>
+      </section>
+
+      <section class="card card--workflow" id="panelWorkflow" data-control-card="ops">
+        <h2>⚙️ Dynamic Workflow</h2>
+        <div class="hint small">Workflow rules โหลดจาก <code>config/workflow.json</code> — แก้ไขไฟล์แล้วกด Reload
+          เพื่ออัปเดต</div>
+        <div class="row">
+          <button id="workflowLoadBtn" class="secondary">Load / Reload Rules</button>
+        </div>
+        <div id="workflowRules" class="workflow-rules"></div>
+      </section>
+
+      <section class="card card--hitl" id="panelHitl" data-control-card="ops">
+        <h2 data-i18n="hitlTitle">✅ Pending Approvals (HITL)</h2>
+        <div class="row">
+          <button id="hitlRefreshBtn" class="secondary">Refresh Queue</button>
+          <label class="field field--inline">
+            <span>Show</span>
+            <select id="hitlScope">
+              <option value="pending" selected>Pending Only</option>
+              <option value="all">All Status</option>
+            </select>
+          </label>
+        </div>
+        <div class="summary-box small" id="hitlStats">queue: -</div>
+        <div class="small" id="hitlCopyStatus"></div>
+        <div class="hitl-list" id="hitlList"></div>
+      </section>
+
+      <section class="card card--ops-focus" id="panelOpsFocus" data-control-card="ops">
+        <h2>🎯 AI Focus & Autonomy</h2>
+        <div class="hint small">โฟกัสทีม AI ตามโปรเจกต์ที่เลือก ควบคุมโหมดสมอง และสลับ Auto Dev</div>
+        <label class="field">
+          <span>Focus Project</span>
+          <select id="focusProjectSelect">
+            <option value="all" selected>All Projects</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Focus Role</span>
+          <select id="focusRoleSelect">
+            <option value="ALL" selected>ALL</option>
+            <option value="SA">SA</option>
+            <option value="Dev">Dev</option>
+            <option value="QE">QE</option>
+          </select>
+        </label>
+        <div class="row">
+          <button id="focusApplyBtn">Apply Focus</button>
+          <button id="autoDevToggleBtn" class="secondary">Auto Dev: OFF</button>
+        </div>
+        <label class="field">
+          <span>Brain Mode (ECS/TAM)</span>
+          <select id="brainModeSelect">
+            <option value="Constructive/Curiosity" selected>Constructive / Curiosity</option>
+            <option value="Calm/Analytical">Calm / Analytical</option>
+            <option value="Empathetic/Supportive">Empathetic / Supportive</option>
+            <option value="Urgent/Execution">Urgent / Execution</option>
+          </select>
+        </label>
+        <div class="row">
+          <button id="brainApplyBtn" class="secondary">Apply Brain Mode</button>
+          <button id="opsProcessRefreshBtn" class="secondary">Refresh Process</button>
+        </div>
+        <pre class="log" id="opsProcessLog"></pre>
+      </section>
+
+    </aside>
+  </main>
+
+  <!-- Phase 7: Auto-Pilot toast notification container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Mobile sidebar backdrop -->
+  <div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
+
+  <script src="static/vendor/react.production.min.js"></script>
+  <script src="static/vendor/react-dom.production.min.js"></script>
+  <script src="static/vendor/redux.min.js"></script>
+  <script src="static/vendor/react-redux.min.js"></script>
+
+  <!-- Phase 11: Force Graph Library -->
+  <script src="static/vendor/force-graph.min.js"></script>
+  <script src="static/uat-mock.js"></script>
+  <script src="static/app.react.js?v=1.0.5"></script>
+  <script src="static/app.js?v=1.0.5"></script>
+
+  <!-- Monaco Editor (AMD loader) -->
+  <script>
+    (function initMonaco() {
+      var toolArgsEl = document.getElementById("toolArgs");
+      var monacoContainer = document.getElementById("monacoToolArgs");
+      if (!toolArgsEl || !monacoContainer) return;
+
+      var script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js";
+      script.onload = function () {
+        require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs" } });
+        require(["vs/editor/editor.main"], function () {
+          monacoContainer.style.height = "160px";
+          monacoContainer.style.borderRadius = "10px";
+          monacoContainer.style.overflow = "hidden";
+          var editor = monaco.editor.create(monacoContainer, {
+            value: toolArgsEl.value || "{}",
+            language: "json",
+            theme: document.body.classList.contains("theme-light") ? "vs" : "vs-dark",
+            minimap: { enabled: false },
+            fontSize: 13,
+            lineNumbers: "off",
+            scrollBeyondLastLine: false,
+            wordWrap: "on",
+            automaticLayout: true,
+          });
+          // Sync editor → textarea
+          editor.onDidChangeModelContent(function () {
+            toolArgsEl.value = editor.getValue();
+          });
+          // Sync textarea → editor (for programmatic writes)
+          var origDescriptor = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value");
+          Object.defineProperty(toolArgsEl, "value", {
+            get: function () { return origDescriptor.get.call(this); },
+            set: function (v) {
+              origDescriptor.set.call(this, v);
+              if (editor.getValue() !== v) editor.setValue(v || "");
+            },
+          });
+          // Hide native textarea, show monaco
+          toolArgsEl.style.display = "none";
+          document.body.classList.add("monaco-loaded");
+          // Respect theme toggle
+          document.addEventListener("innova:themeChange", function (e) {
+            monaco.editor.setTheme(e.detail === "light" ? "vs" : "vs-dark");
+          });
+        });
+      };
+      document.head.appendChild(script);
+    })();
+  </script>
+
+  <!-- Typing indicator: mirrors chatStatus.is-busy class state -->
+  <script>
+    (function initTypingIndicator() {
+      var indicator = document.getElementById("typingIndicator");
+      var statusEl = document.getElementById("chatStatus");
+      if (!indicator || !statusEl) return;
+
+      function sync() {
+        var busy = statusEl.classList.contains("is-busy");
+        var text = (statusEl.textContent || "").toLowerCase();
+        var active = busy || text.includes("thinking") || text.includes("…") || text.includes("typing");
+        indicator.hidden = !active;
+      }
+
+      // Watch both class changes (is-busy toggle) and text content changes
+      new MutationObserver(sync).observe(statusEl, {
+        attributes: true,
+        attributeFilter: ["class"],
+        childList: true,
+        characterData: true,
+        subtree: true,
+      });
+      sync();
+    })();
+  </script>
+</body>
+
+</html>
